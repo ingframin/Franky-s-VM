@@ -1,200 +1,214 @@
-class Machine:
+#Machine components
+memory = None
+R = None
+PC = None
+IR = None
+SP = None
+SS = None
+flags= None
+prg_mem = None
+IO_mem = None
+status = None
+opcodes = {}
 
-    def __init__(self, mem_size, rp_size, iom_size, s_status = {}):
-        self.memory = [0 for x in range(mem_size)]
-        self.R = [0 for x in range(rp_size)]
-        self.PC = 0
-        self.IR = 0
-        self.SP = mem_size-1
-        self.SS = 0
-        self.flags= {'zero':0, 'eq':0, 'div0':0, 'suf':0}
-        self.prg_mem = []
-        self.IO_mem = [0 for x in range(iom_size)]
-        self.status = s_status
-        self.ret_mem = {}
-        
-        if s_status == {}:
-            
-            self.status['R'] = []
-            self.status['PC'] = []
-            self.status['flags'] = []
-            self.status['SP'] = []
-            self.status['SS'] = []
-        
-        
-    def fetch(self):
-        self.IR = prg_mem[self.PC]
-        self.PC += 1
+def load_isa(filename):
+	pass
+	
+def init(mem_size, rp_size, iom_size):
+	'''init function
+	initialize all the components of the virtual machine'''
+	
+    memory = [0 for x in range(mem_size)]
+    R = [0 for x in range(rp_size)]
+    PC = 0
+    IR = 0
+    SP = mem_size-1
+    SS = 0
+    flags= {'zero':0, 'eq':0, 'div0':0, 'suf':0}
+    prg_mem = []
+    IO_mem = [0 for x in range(iom_size)]
+    status = {}
+    status['R'] = []
+    status['PC'] = []
+    status['flags'] = []
+    status['SP'] = []
+    status['SS'] = []
 
-    def halt(self):
-        self.PC = -1
 
-    def move(self,s,d):
-        self.R[d] = self.R[s]
+def nop():
+	pass
 
-    def load(self,addr,reg):
-        self.R[reg] = self.memory[addr]
+def halt():
+	PC = -1
 
-    def store(self,reg,addr):
-        self.memory[addr] = self.R[reg]
+def fetch():
+	IR = prg_mem[PC]
+	PC += 1
 
-    def mmove(self,addr_s,addr_d):
-        self.memory[addr_d] = self.memory[addr_s]
+def move(s,d):
+	R[d] = R[s]
 
-    def push(self,reg):
-        self.memory[self.SP] = self.R[reg]
-        self.SP -= 1
-        self.SS += 1
-        
-    def pop(self,reg):
-        if self.SS == 0:
-            self.flags['suf'] = 1
-            return
-        else:
-            self.flags['suf'] = 0
-        
-        self.SP += 1
-        self.R[reg] = self.memory[self.SP]
-        self.SS -= 1
-        
-    def io_read(self,addr):
-        self.IO_mem[addr] = input()
+def load(addr,reg):
+	R[reg] = memory[addr]
 
-    def io_write(self,addr):
-        print(self.IO_mem[addr])
+def store(reg,addr):
+	memory[addr] = R[reg]
 
-    def add(self,r1,r2,rd):
-        self.R[rd] = self.R[r1]+self.R[r2]
-        if self.R[rd] ==0:
-            self.flags['zero'] = 1
-        else:
-            self.flags['zero'] = 0
+def mmove(addr_s,addr_d):
+	memory[addr_d] = memory[addr_s]
 
-    def sub(self,r1,r2,rd):
-        self.R[rd] = self.R[r1]-self.R[r2]
-        if self.R[rd] ==0:
-            self.flags['zero'] = 1
-        else:
-            self.flags['zero'] = 0
-            
-    def mul(self,r1,r2,rd):
-        self.R[rd] = self.R[r1]*self.R[r2]
-        if self.R[rd] ==0:
-            self.flags['zero'] = 1
-        else:
-            self.flags['zero'] = 0
+def push(reg):
+	memory[SP] = R[reg]
+	SP -= 1
+	SS += 1
 
-    def div(self,r1,r2,rd):
-        if self.R[r2] == 0:
-            self.flags['div0'] = 1
-        else:
-            self.flags['div0'] = 0
+def pop(reg):
+	if SS == 0:
+		flags['suf'] = 1
+		return
+	else:
+		flags['suf'] = 0
+	
+	SP += 1
+	R[reg] = memory[SP]
+	SS -= 1
 
-        self.R[rd] = self.R[r1]/self.R[r2]
-        
-        if self.R[rd] ==0:
-            self.flags['zero'] = 1
-        else:
-            self.flags['zero'] = 0
-            
-    def rem(self,r1,r2,rd):
-        if self.R[r2] == 0:
-            self.flags['div0'] = 1
-        else:
-            self.flags['div0'] = 0
-            
-        self.R[rd] = self.R[r1]%self.R[r2]
+def io_read(addr):
+	IO_mem[addr] = input()
 
-        if self.R[rd] ==0:
-            self.flags['zero'] = 1
-        else:
-            self.flags['zero'] = 0
-            
-    def pow(self,r1,r2,rd):
-        self.R[rd] = self.R[r1]**self.R[r2]
-        if self.R[rd] ==0:
-            self.flags['zero'] = 1
-        else:
-            self.flags['zero'] = 0
-            
-    def shl(self,reg,n):
-        self.R[reg] <<= n
+def io_write(addr):
+	print(IO_mem[addr])
 
-    def shr(self,reg,n):
-        self.R[reg] >>= n
-        
-    def cmp(self,r1,r2):
-        if self.R[r1] == self.R[r2]:
-            self.flags['eq'] = 1
-        else:
-            self.flags['eq'] = 0
-            
-    def jmp(self,addr):
-        self.PC = addr
+def add(r1,r2,rd):
+	R[rd] = R[r1]+R[r2]
+	if R[rd] ==0:
+		flags['zero'] = 1
+	else:
+		flags['zero'] = 0
 
-    def je(self,r1,r2,addr):
-        if self.R[r1] == self.R[r2]:
-            self.PC = addr
-            self.flags['eq'] = 1
-        else:
-            self.flags['eq'] = 0
+def sub(r1,r2,rd):
+	R[rd] = R[r1]-R[r2]
+	if R[rd] ==0:
+		flags['zero'] = 1
+	else:
+		flags['zero'] = 0
+		
+def mul(r1,r2,rd):
+	R[rd] = R[r1]*R[r2]
+	if R[rd] ==0:
+		flags['zero'] = 1
+	else:
+		flags['zero'] = 0
 
-    def jne(self,r1,r2,addr):
-        if self.R[r1] != self.R[r2]:
-            self.PC = addr
-            self.flags['eq'] = 0
-        else:
-            self.flags['eq'] = 1
+def div(r1,r2,rd):
+	if R[r2] == 0:
+		flags['div0'] = 1
+	else:
+		flags['div0'] = 0
 
-    def jg(self,r1,r2,addr):
-        if self.R[r1] > self.R[r2]:
-            self.PC = addr
-            
-    def jge(self,r1,r2,addr):
-        if self.R[r1] >= self.R[r2]:
-            self.PC = addr
-            
-    def jl(self,r1,r2,addr):
-        if self.R[r1] < self.R[r2]:
-            self.PC = addr
-            
-    def jle(self,r1,r2,addr):
-        if self.R[r1] <= self.R[r2]:
-            self.PC = addr
-            
-    def jz(self,addr):
-        if self.flags['zero'] == 1:
-            self.PC = addr
-            
-    def jnz(self,addr):
-        if self.flags['zero'] == 0:
-            self.PC = addr
+	R[rd] = R[r1]/R[r2]
+	
+	if R[rd] ==0:
+		flags['zero'] = 1
+	else:
+		flags['zero'] = 0
+		
+def rem(r1,r2,rd):
+	if R[r2] == 0:
+		flags['div0'] = 1
+	else:
+		flags['div0'] = 0
+		
+	R[rd] = R[r1]%R[r2]
 
-    def dup(self):
-        self.memory[self.SP] = self.memory[self.SP-1]
-        self.SP -= 1
-        self.SS += 1
+	if R[rd] ==0:
+		flags['zero'] = 1
+	else:
+		flags['zero'] = 0
+	
+def pow(r1,r2,rd):
+	R[rd] = R[r1]**R[r2]
+	if R[rd] ==0:
+		flags['zero'] = 1
+	else:
+		flags['zero'] = 0
+		
+def shl(reg,n):
+	R[reg] <<= n
 
-    def swap(self):
-        if self.SS<2:
-            return
-        self.memory[self.SP-1],self.memory[self.SP-2] = self.memory[self.SP-2],self.memory[self.SP-1]
+def shr(reg,n):
+	R[reg] >>= n
+	
+def cmp(r1,r2):
+	if R[r1] == R[r2]:
+		flags['eq'] = 1
+	else:
+		flags['eq'] = 0
+		
+def jmp(addr):
+	PC = addr
 
-    def call(self,p_addr,p_len,addr):
-        self.status['R'].append(self.R)
-        self.status['PC'].append(self.PC)
-        self.status['flags'].append(self.flags)
-        self.status['SP'].append(self.SP)
-        self.status['SS'].append(self.SS)
-        self.PC = addr
-        self.SS = 0
+def je(r1,r2,addr):
+	if R[r1] == R[r2]:
+		PC = addr
+		flags['eq'] = 1
+	else:
+		flags['eq'] = 0
 
-    def ret(self, r_addr, r_len):
-        self.R = self.status['R'].pop()
-        self.PC = self.status['PC'].pop(self.PC)
-        self.flags = self.status['flags'].pop(self.flags)
-        self.SP = self.status['SP'].pop(self.SP)
-        self.SS = self.status['SS'].pop(self.SS)
-        self.PC += 1
-    
-        
+def jne(r1,r2,addr):
+	if R[r1] != R[r2]:
+		PC = addr
+		flags['eq'] = 0
+	else:
+		flags['eq'] = 1
+
+def jg(r1,r2,addr):
+	if R[r1] > R[r2]:
+		PC = addr
+	
+def jge(r1,r2,addr):
+	if R[r1] >= R[r2]:
+		PC = addr
+		
+def jl(r1,r2,addr):
+	if R[r1] < R[r2]:
+		PC = addr
+	
+def jle(r1,r2,addr):
+	if R[r1] <= R[r2]:
+		PC = addr
+		
+def jz(addr):
+	if flags['zero'] == 1:
+		PC = addr
+		
+def jnz(addr):
+	if flags['zero'] == 0:
+		PC = addr
+
+def dup():
+	memory[SP] = memory[SP-1]
+	SP -= 1
+	SS += 1
+
+def swap():
+	if SS<2:
+		return
+	memory[SP-1],memory[SP-2] = memory[SP-2],memory[SP-1]
+
+def call(p_addr,p_len,addr):
+	status['R'].append(R)
+	status['PC'].append(PC)
+	status['flags'].append(flags)
+	status['SP'].append(SP)
+	status['SS'].append(SS)
+	PC = addr
+	SS = 0
+	
+def ret(r_addr, r_len):
+	R = status['R'].pop()
+	PC = status['PC'].pop(PC)
+	flags = status['flags'].pop(flags)
+	SP = status['SP'].pop(SP)
+	SS = status['SS'].pop(SS)
+	PC += 1
