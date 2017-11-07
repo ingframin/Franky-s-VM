@@ -43,10 +43,10 @@ def bxor(x1,x2,d):
     reg_pool[d] = reg_pool[x1]^reg_pool[x2]
 
 def band(a1,a2,d):
-    reg_pool[d] = reg_pool[a1]^reg_pool[a2]
+    reg_pool[d] = reg_pool[a1]&reg_pool[a2]
 
 def bor(o1,o2,d):
-    reg_pool[d] = reg_pool[o1]^reg_pool[o2]
+    reg_pool[d] = reg_pool[o1]|reg_pool[o2]
 
 def bnot(n1,d):
     reg_pool[d]=~reg_pool[n1]
