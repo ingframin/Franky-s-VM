@@ -1,4 +1,0 @@
-{symbol=halt;opcode=0x00;function=halt}
-{symbol=move;opcode=0x01;function=move}
-{symbol=load;opcode=0x02;function=load}
-{symbol=store;opcode=0x03;function=store}
